@@ -14,16 +14,38 @@ app.get('/all', (req, res) => {
     res.send(locations);
 });
 
+const isValidString = (str) => {
+    return (typeof str === 'string' && str.length > 0);
+}
+
+const isValidLatitude = (lat) => {
+    if (isNaN(lat)) {
+        return false;
+    } else {
+        lat = parseFloat(lat);
+        return (lat >= -90 && lat <= 90);
+    }
+};
+
+const isValidLongitude = (lon) => {
+    if (isNaN(lon)) {
+        return false;
+    } else {
+        lon = parseFloat(lon);
+        return (lon >= -180 && lon <= 180);
+    }
+}
+
 
 // Accepts name, address, latitude, and longitude, adds a new coffee shop to the data set, and returns the id of the new coffee shop.
 app.post('/create', (req, res) => {
-    if (!req.body.name) {
+    if (!isValidString(req.body.name)) {
         res.send({ error: 'invalid value given for Name' });
-    } else if (!req.body.address) {
+    } else if (!isValidString(req.body.address)) {
         res.send({ error: 'invalid value given for Address' });
-    } else if (!req.body.latitude || isNaN(req.body.latitude)) {
+    } else if (!isValidLatitude(req.body.latitude)) {
         res.send({ error: 'invalid value given for Latitude' });
-    } else if (!req.body.longitude || isNaN(req.body.longitude)) {
+    } else if (!isValidLongitude(req.body.longitude)) {
         res.send({ error: 'invalid value given for Longitude' });
     } else {
         locations[locations.nextID] = {
@@ -54,11 +76,22 @@ app.post('/update', (req, res) => {
     if (!id || !locations[id]) {
         res.status(404).send({ error: 'invalid/missing id' });
     } else {
-        locations[id].name = req.body.name || locations[id].name;
-        locations[id].address = req.body.address || locations[id].address;
-        locations[id].latitude = req.body.latitude || locations[id].latitude;
-        locations[id].longitude = req.body.longitude || locations[id].longitude;
-        res.send({ status: 'updated' });
+        const updated = req.body;
+        if (updated.name !== undefined && !isValidString(updated.name)) {
+            res.status(400).send({ error: 'invalid value given for Name' });
+        } else if (updated.address !== undefined && !isValidString(updated.address)) {
+            res.status(400).send({ error: 'invalid value given for Address' });
+        } else if (updated.latitude && !isValidLatitude(updated.latitude)) {
+            res.status(400).send({ error: 'invalid value given for Latitude' });
+        } else if (updated.longitude && !isValidLongitude(updated.longitude)) {
+            res.status(400).send({ error: 'invalid value given for Longitude' });
+        } else {
+            locations[id].name = updated.name || locations[id].name;
+            locations[id].address = updated.address || locations[id].address;
+            locations[id].latitude = updated.latitude || locations[id].latitude;
+            locations[id].longitude = updated.longitude || locations[id].longitude;
+            res.send({ status: 'updated' });
+        }
     }
 });
 

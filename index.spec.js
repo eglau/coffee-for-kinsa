@@ -47,11 +47,24 @@ describe('/read', () => {
 });
 
 describe('/update', () => {
-    const sample = {
+    const badData1 = {
+        address: [1, 2, 3],
+        latitude: 'i am wrong',
+    };
+    const badData2 = {
+        name: ''
+    };
+    const badData3 = {
         name: 'new name',
-        address: 'new address',
-        latitude: 'new lat',
-        longitude: 'new lon'
+        longitude: 'i am wrong',
+    };
+    const goodData1 = {
+        name: 'new name'
+    };
+    const goodData2 = {
+        address: 'cool place',
+        latitude: '1',
+        longitude: '0'
     };
     it('should return 404 for non-POST request', (done) => {
         supertest(app).get('/update').end((err, res) => {
@@ -81,8 +94,36 @@ describe('/update', () => {
             done();
         });
     });
-    it('should return 200 when an update is successful', (done) => {
-        supertest(app).post('/update?id=10').send(sample).end((err, res) => {
+    it('should return 400 when bad data (incorrect type) is sent', (done) => {
+        supertest(app).post('/update?id=10').send(badData1).end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('invalid value given for Address');
+            done();
+        });
+    });
+    it('should return 400 when bad data (empty string) is sent', (done) => {
+        supertest(app).post('/update?id=10').send(badData2).end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('invalid value given for Name');
+            done();
+        });
+    });
+    it('should return 400 when bad data (invalid lat/lon) is sent', (done) => {
+        supertest(app).post('/update?id=10').send(badData3).end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('invalid value given for Longitude');
+            done();
+        });
+    });
+    it('should return 200 when good data (valid name) is sent', (done) => {
+        supertest(app).post('/update?id=10').send(goodData1).end((err, res) => {
+            chai.expect(res.statusCode).to.equal(200);
+            chai.expect(res.body.status).to.equal('updated');
+            done();
+        });
+    });
+    it('should return 200 when good data (valid adr, lat, lon) is sent', (done) => {
+        supertest(app).post('/update?id=10').send(goodData2).end((err, res) => {
             chai.expect(res.statusCode).to.equal(200);
             chai.expect(res.body.status).to.equal('updated');
             done();
@@ -95,9 +136,9 @@ describe('/read', () => {
         supertest(app).get('/read?id=10').end((err, res) => {
             chai.expect(res.statusCode).to.equal(200);
             chai.expect(res.body.name).to.equal('new name');
-            chai.expect(res.body.address).to.equal('new address');
-            chai.expect(res.body.latitude).to.equal('new lat');
-            chai.expect(res.body.longitude).to.equal('new lon');
+            chai.expect(res.body.address).to.equal('cool place');
+            chai.expect(res.body.latitude).to.equal('1');
+            chai.expect(res.body.longitude).to.equal('0');
             done();
         });
     });

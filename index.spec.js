@@ -60,8 +60,8 @@ describe('/read', () => {
             chai.expect(res.statusCode).to.equal(200);
             chai.expect(res.body.name).to.equal('Blue Bottle Coffee');
             chai.expect(res.body.address).to.equal('1 Ferry Building Ste 7');
-            chai.expect(res.body.latitude).to.equal('37.79590475625579');
-            chai.expect(res.body.longitude).to.equal('-122.39393759555746');
+            chai.expect(res.body.latitude).to.equal(37.79590475625579);
+            chai.expect(res.body.longitude).to.equal(-122.39393759555746);
             done();
         });
     });
@@ -158,8 +158,8 @@ describe('/read', () => {
             chai.expect(res.statusCode).to.equal(200);
             chai.expect(res.body.name).to.equal('new name');
             chai.expect(res.body.address).to.equal('cool place');
-            chai.expect(res.body.latitude).to.equal('1');
-            chai.expect(res.body.longitude).to.equal('0');
+            chai.expect(res.body.latitude).to.equal(1);
+            chai.expect(res.body.longitude).to.equal(0);
             done();
         });
     });
@@ -276,8 +276,18 @@ describe('/read', () => {
             chai.expect(res.statusCode).to.equal(200);
             chai.expect(res.body.name).to.equal('New shop');
             chai.expect(res.body.address).to.equal('Somewhere');
-            chai.expect(res.body.latitude).to.equal('3.14159');
-            chai.expect(res.body.longitude).to.equal('1.234567');
+            chai.expect(res.body.latitude).to.equal(3.14159);
+            chai.expect(res.body.longitude).to.equal(1.234567);
+            done();
+        });
+    });
+});
+
+describe('/nearest', () => {
+    it('should return 404 for non-GET request', (done) => {
+        supertest(app).post('/nearest').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(404);
+            chai.expect(res.body.error).to.equal('invalid route');
             done();
         });
     });

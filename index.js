@@ -125,28 +125,32 @@ app.delete('/delete', (req, res) => {
 // Accepts an address and returns the closest coffee shop by straight line distance.
 app.get('/nearest', (req, res) => {
     const address = req.query.address;
-    axios.get(`https://maps.googleapis.com/maps/api/geocode/json?key=${GAPI_KEY}&address=${address}`).then((response) => {
-        const coords = response.data.results[0].geometry.location;
+    if (!address) {
+        res.status(400).send({ error: 'missing address' });
+    } else {
+        axios.get(`https://maps.googleapis.com/maps/api/geocode/json?key=${GAPI_KEY}&address=${address}`).then((response) => {
+            const coords = response.data.results[0].geometry.location;
 
-        let shortest = {
-            id: null,
-            distance: null
-        };
-        const locs = Object.keys(locations);
-        locs.map((id) => {
-            if (id !== 'nextID') {
-                const loc = locations[id];
-                let distance = calculateDistance(coords.lat, coords.lng, loc.latitude, loc.longitude);
-                if (!shortest.id || distance < shortest.distance) {
-                    shortest.id = id;
-                    shortest.distance = distance;
+            let shortest = {
+                id: null,
+                distance: null
+            };
+            const locs = Object.keys(locations);
+            locs.map((id) => {
+                if (id !== 'nextID') {
+                    const loc = locations[id];
+                    let distance = calculateDistance(coords.lat, coords.lng, loc.latitude, loc.longitude);
+                    if (!shortest.id || distance < shortest.distance) {
+                        shortest.id = id;
+                        shortest.distance = distance;
+                    }
                 }
-            }
+            });
+            res.send(locations[shortest.id]);
+        }).catch(() => {
+            res.status(400).send({ error: `could not find nearest coffee shop for location: ${address}` });
         });
-        res.send(locations[shortest.id]);
-    }).catch(() => {
-        res.status(500).send({ error: `could not get nearest coffee shop for location: ${address}` });
-    });
+    }
 });
 
 // 404 for all other routes

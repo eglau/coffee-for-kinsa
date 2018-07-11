@@ -291,4 +291,46 @@ describe('/nearest', () => {
             done();
         });
     });
+    it('should return 400 when the address parameter is missing', (done) => {
+        supertest(app).get('/nearest').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('missing address');
+            done();
+        });
+    });
+    it('should return 400 when an address is missing', (done) => {
+        supertest(app).get('/nearest?address=').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('missing address');
+            done();
+        });
+    });
+    it('should return 400 when an address cannot be found by Google', (done) => {
+        supertest(app).get('/nearest?address=9c8c05b0800c28b5231d78b985687eb5').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(400);
+            chai.expect(res.body.error).to.equal('could not find nearest coffee shop for location: 9c8c05b0800c28b5231d78b985687eb5');
+            done();
+        });
+    });
+    it('should return 200 and nearest shop when an address is valid example #1)', (done) => {
+        supertest(app).get('/nearest?address=535 Mission St., San Francisco, CA').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(200);
+            chai.expect(res.body.name).to.equal('Red Door Coffee');
+            done();
+        });
+    });
+    it('should return 200 and nearest shop when an address is valid (example #2)', (done) => {
+        supertest(app).get('/nearest?address=252 Guerrero St, San Francisco, CA 94103, USA').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(200);
+            chai.expect(res.body.name).to.equal('Four Barrel Coffee');
+            done();
+        });
+    });
+    it('should return 200 and nearest shop when an address is valid (same location)', (done) => {
+        supertest(app).get('/nearest?address=601 Vallejo St').end((err, res) => {
+            chai.expect(res.statusCode).to.equal(200);
+            chai.expect(res.body.name).to.equal('Caffe Trieste');
+            done();
+        });
+    });
 });

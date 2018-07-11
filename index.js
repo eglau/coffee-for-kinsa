@@ -10,14 +10,12 @@ const rl = readline.createInterface({
     input: fs.createReadStream('locations.csv')
 });
 
-app.get('/all', (req, res) => {
-    res.send(locations);
-});
-
+// Simple validation check for non-empty strings
 const isValidString = (str) => {
     return (typeof str === 'string' && str.length > 0);
 }
 
+// Simple validation check for latitude numbers
 const isValidLatitude = (lat) => {
     if (isNaN(lat)) {
         return false;
@@ -27,6 +25,7 @@ const isValidLatitude = (lat) => {
     }
 };
 
+// Simple validation check for longitude numbers
 const isValidLongitude = (lon) => {
     if (isNaN(lon)) {
         return false;
@@ -36,29 +35,27 @@ const isValidLongitude = (lon) => {
     }
 }
 
-
 // Accepts name, address, latitude, and longitude, adds a new coffee shop to the data set, and returns the id of the new coffee shop.
 app.post('/create', (req, res) => {
     if (!isValidString(req.body.name)) {
-        res.send({ error: 'invalid value given for Name' });
+        res.status(400).send({ error: 'invalid value given for Name' });
     } else if (!isValidString(req.body.address)) {
-        res.send({ error: 'invalid value given for Address' });
+        res.status(400).send({ error: 'invalid value given for Address' });
     } else if (!isValidLatitude(req.body.latitude)) {
-        res.send({ error: 'invalid value given for Latitude' });
+        res.status(400).send({ error: 'invalid value given for Latitude' });
     } else if (!isValidLongitude(req.body.longitude)) {
-        res.send({ error: 'invalid value given for Longitude' });
+        res.status(400).send({ error: 'invalid value given for Longitude' });
     } else {
         locations[locations.nextID] = {
             name: req.body.name,
             address: req.body.address,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude,
+            latitude: '' + req.body.latitude,
+            longitude: '' + req.body.longitude,
         }
         locations.nextID++;
         res.send({ created: locations.nextID - 1 });
     }
 });
-
 
 // Accepts an id and returns the id, name, address, latitude, and longitude of the coffee shop with that id, or an appropriate error if it is not found.
 app.get('/read', (req, res) => {
@@ -71,7 +68,7 @@ app.get('/read', (req, res) => {
 });
 
 // Accepts an id and new values for the name, address, latitude, or longitude fields, updates the coffee shop with that id, or returns an appropriate error if it is not found.
-app.post('/update', (req, res) => {
+app.put('/update', (req, res) => {
     const id = req.query.id;
     if (!id || !locations[id]) {
         res.status(404).send({ error: 'invalid/missing id' });
@@ -88,8 +85,8 @@ app.post('/update', (req, res) => {
         } else {
             locations[id].name = updated.name || locations[id].name;
             locations[id].address = updated.address || locations[id].address;
-            locations[id].latitude = updated.latitude || locations[id].latitude;
-            locations[id].longitude = updated.longitude || locations[id].longitude;
+            locations[id].latitude = '' + updated.latitude || locations[id].latitude;
+            locations[id].longitude = '' + updated.longitude || locations[id].longitude;
             res.send({ status: 'updated' });
         }
     }
@@ -112,12 +109,12 @@ app.get('/nearest', (req, res) => {
 });
 
 // 404 for all other routes
-app.get('*', (req, res) => {
+app.all('*', (req, res) => {
     res.status(404).send({ error: 'invalid route' });
 });
 
 
-// Load locations into memory
+// Load locations from csv into memory
 const locations = {
     nextID: 1
 };
@@ -134,7 +131,7 @@ rl.on('line', (line) => {
 });
 rl.on('close', () => {
     app.listen(3000, () => {
-        'Listening for requests...'
+        console.log('Listening for requests...');
     });
 });
 

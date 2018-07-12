@@ -176,7 +176,7 @@ rl.on('line', (line) => {
 });
 rl.on('close', () => {
     app.listen(3000, () => {
-        console.log('Listening for requests...');
+        console.log('Listening for requests on port 3000...');
     });
 });
 
